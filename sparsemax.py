@@ -10,8 +10,6 @@ from __future__ import division
 import torch
 import torch.nn as nn
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 class Sparsemax(nn.Module):
     """Sparsemax function."""
@@ -36,6 +34,9 @@ class Sparsemax(nn.Module):
             torch.Tensor: [batch_size x number_of_logits] Output tensor
 
         """
+        # Device check
+        device = input.device
+
         # Sparsemax currently only handles 2-dim tensors,
         # so we reshape to a convenient shape and reshape back after sparsemax
         input = input.transpose(0, self.dim)
@@ -89,3 +90,22 @@ class Sparsemax(nn.Module):
         self.grad_input = nonzeros * (grad_output - sum.expand_as(grad_output))
 
         return self.grad_input
+
+if __name__=='__main__':
+    ## gpu setting 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    sparsemax = Sparsemax(dim=1)
+    softmax = torch.nn.Softmax(dim=1)
+
+    logits = torch.randn((2, 5), device=device)
+    print("\nLogits")
+    print(logits)
+
+    softmax_probs = softmax(logits)
+    print("\nSoftmax probabilities")
+    print(softmax_probs)
+
+    sparsemax_probs = sparsemax(logits)
+    print("\nSparsemax probabilities")
+    print(sparsemax_probs)
